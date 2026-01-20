@@ -152,6 +152,245 @@ const T& Tensor<T>::operator[](const std::vector<size_t>& indices) const
 }
 
 
+//-------------- Tensor 运算重载 --------------//
+// Tensor 加法运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    Tensor<T> result(this->getShape());
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] + other.data[i];
+    }
+    return result;
+}
+
+// Tensor 减法运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    Tensor<T> result(this->getShape());
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] - other.data[i];
+    }
+    return result;
+}
+
+// Tensor 哈达玛积运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    Tensor<T> result(this->getShape());
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] * other.data[i];
+    }
+    return result;
+}
+
+
+// Tensor 除法运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    Tensor<T> result(this->getShape());
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] / other.data[i];
+    }
+    return result;
+}
+
+// -------------- Tensor,val 运算重载 --------------//
+// Tensor 与标量加法运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator+(const T& val) const
+{
+    Tensor<T> result(this->shape);
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] + val;
+    }
+    return result;
+}
+
+// Tensor 与标量减法运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator-(const T& val) const
+{
+    Tensor<T> result(this->shape);
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] - val;
+    }
+    return result;
+}
+
+// Tensor 与标量乘法运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator*(const T& val) const
+{
+    Tensor<T> result(this->shape);
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] * val;
+    }
+    return result;
+} 
+
+// Tensor 与标量除法运算重载
+template<typename T>
+Tensor<T> Tensor<T>::operator/(const T& val) const
+{
+    Tensor<T> result(this->shape);
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        result[i] = this->data[i] / val;
+    }
+    return result;
+}
+
+//-------------- val, Tensor 运算友元重载 --------------//
+// 已在头文件中实现
+
+//-------------- Tensor 赋值运算重载 --------------//
+// Tensor 赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator=(const Tensor<T>& other)
+{
+    if (this != &other)
+    {
+        this->data = other.data;
+        this->shape = other.shape;
+        this->strides = other.strides;
+        this->_size = other._size;
+    }
+    return *this;
+}
+
+// Tensor 加法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator+=(const Tensor<T>& other)
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] += other.data[i];
+    }
+    return *this;
+}
+
+// Tensor 减法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator-=(const Tensor<T>& other)
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] -= other.data[i];
+    }
+    return *this;
+}
+
+// Tensor 乘法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator*=(const Tensor<T>& other)
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] *= other.data[i];
+    }
+    return *this;
+}
+
+// Tensor 除法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator/=(const Tensor<T>& other)
+{
+    if (this->getShape() != other.getShape())
+    {
+        throw std::invalid_argument("张量形状不匹配");
+    }
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] /= other.data[i];
+    }
+    return *this;
+}
+
+// Tensor 与标量加法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator+=(const T& val)
+{
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] += val;
+    }
+    return *this;
+}
+
+// Tensor 与标量减法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator-=(const T& val)
+{
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] -= val;
+    }
+    return *this;
+}
+
+// Tensor 与标量乘法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator*=(const T& val)
+{
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] *= val;
+    }
+    return *this;
+}
+
+// Tensor 与标量除法赋值运算符重载
+template<typename T>
+Tensor<T>& Tensor<T>::operator/=(const T& val)
+{
+    for (size_t i = 0; i < this->size(); ++i)
+    {
+        this->data[i] /= val;
+    }
+    return *this;
+}
+
+
+//-------------- 显式实例化常用类型 --------------//
 // 显式实例化常用类型
 template class Tensor<int>;
 template class Tensor<float>;

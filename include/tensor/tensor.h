@@ -1,3 +1,6 @@
+#ifndef TENSOR_H
+#define TENSOR_H
+
 #include <iostream>
 #include <vector>
 
@@ -64,6 +67,10 @@ public:
     Tensor& operator-=(const T& val);
     Tensor& operator*=(const T& val);
     Tensor& operator/=(const T& val);
+
+    //功能函数
+    Tensor reshape(const std::vector<size_t>& new_shape) const;
+
 };
 
 using Tensorf = Tensor<float>;
