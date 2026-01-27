@@ -18,6 +18,7 @@ private:
 
 public:
     // 构造与析构函数
+    Tensor();                                                               // 默认构造
     Tensor(const std::vector<size_t> &_shape, const T &initial_value = T()); // 赋值构造
     Tensor(const Tensor &other);                                             // 拷贝构造
     Tensor(Tensor &&other) noexcept;                                         // 移动构造

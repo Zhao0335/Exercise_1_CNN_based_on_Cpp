@@ -1,6 +1,8 @@
 #include "../../include/tensor/tensor.h"
 #include <iostream>
 #include <stdexcept>
+#include <limits>
+#include <cmath>
 
 //--------计算 strides 和 索引转换--------------//
 template <typename T>
@@ -38,6 +40,15 @@ size_t Tensor<T>::computeIndex(const std::vector<size_t> &indices) const
 //-------------- 构造与析构函数--------------//
 
 // 默认构造函数
+template <typename T>
+Tensor<T>::Tensor()
+    : shape({1}), _size(1)
+{
+    computeStrides();
+    data.resize(_size);
+}
+
+// 赋值构造函数
 template <typename T>
 Tensor<T>::Tensor(const std::vector<size_t> &_shape, const T &initial_value)
     : shape(_shape)
@@ -562,40 +573,64 @@ Tensor<T> Tensor<T>::conv2d(const Tensor<T> &kernel, const std::vector<size_t> &
 }
 
 // pad 填充
-template <typename T>
-Tensor<T> Tensor<T>::pad(const std::vector<size_t> &padding, const T &pad_value) const
-{
-    if (shape.size() < 2 || padding.size() != 2)
-    {
-        throw std::invalid_argument("张量维度不足或填充参数错误");
-    }
-    std::vector<size_t> new_shape = shape;
-    new_shape[shape.size() - 2] += 2 * padding[0]; // 高度方向填充
-    new_shape[shape.size() - 1] += 2 * padding[1]; // 宽度方向填充
+ template <typename T>
+ Tensor<T> Tensor<T>::pad(const std::vector<size_t> &padding, const T &pad_value) const
+ {
+     if (shape.size() < 2 || padding.size() != 2)
+     {
+         throw std::invalid_argument("张量维度不足或填充参数错误");
+     }
+     std::vector<size_t> new_shape = shape;
+     new_shape[shape.size() - 2] += 2 * padding[0]; // 高度方向填充
+     new_shape[shape.size() - 1] += 2 * padding[1]; // 宽度方向填充
 
-    Tensor<T> result(new_shape, pad_value);
+     Tensor<T> result(new_shape, pad_value);
 
-    // 复制原始数据到新张量的正确位置
-    for (size_t i = 0; i < shape[shape.size() - 2]; ++i)
-    {
-        for (size_t j = 0; j < shape[shape.size() - 1]; ++j)
-        {
-            std::vector<size_t> src_indices(shape.size(), 0);
-            std::vector<size_t> dst_indices(shape.size(), 0);
-            for (size_t d = 0; d < shape.size() - 2; ++d)
-            {
-                src_indices[d] = 0;
-                dst_indices[d] = 0;
-            }
-            src_indices[shape.size() - 2] = i;
-            src_indices[shape.size() - 1] = j;
-            dst_indices[shape.size() - 2] = i + padding[0];
-            dst_indices[shape.size() - 1] = j + padding[1];
-            result[dst_indices] = (*this)[src_indices];
-        }
-    }
-    return result;
-}
+     // 计算前shape.size()-2维的总大小
+     size_t pre_size = 1;
+     for (size_t d = 0; d < shape.size() - 2; ++d)
+     {
+         pre_size *= shape[d];
+     }
+
+     // 复制原始数据到新张量的正确位置
+     for (size_t p = 0; p < pre_size; ++p)
+     {
+         // 还原p到前shape.size()-2维的索引
+         std::vector<size_t> pre_indices(shape.size() - 2, 0);
+         size_t temp = p;
+         for (int i = static_cast<int>(shape.size() - 3); i >= 0; --i)
+         {
+             pre_indices[i] = temp % shape[i];
+             temp /= shape[i];
+         }
+
+         for (size_t i = 0; i < shape[shape.size() - 2]; ++i)
+         {
+             for (size_t j = 0; j < shape[shape.size() - 1]; ++j)
+             {
+                 std::vector<size_t> src_indices(shape.size());
+                 std::vector<size_t> dst_indices(shape.size());
+                 
+                 // 填充前shape.size()-2维的索引
+                 for (size_t d = 0; d < shape.size() - 2; ++d)
+                 {
+                     src_indices[d] = pre_indices[d];
+                     dst_indices[d] = pre_indices[d];
+                 }
+                 
+                 // 填充高度和宽度的索引
+                 src_indices[shape.size() - 2] = i;
+                 src_indices[shape.size() - 1] = j;
+                 dst_indices[shape.size() - 2] = i + padding[0];
+                 dst_indices[shape.size() - 1] = j + padding[1];
+                 
+                 result[dst_indices] = (*this)[src_indices];
+             }
+         }
+     }
+     return result;
+ }
 
 // maxPool2d 二维最大池化（四维张量 [B, C, H, W]）
 template <typename T>
@@ -852,9 +887,8 @@ Tensor<T> Tensor<T>::softmax(int dim) const
                     indices[i] = temp_inner % shape[i];
                     temp_inner /= shape[i];
                 }
-                =
-                    // 求当前切片的最大值
-                    for (size_t d = 0; d < dim_size; ++d)
+                // 求当前切片的最大值
+                for (size_t d = 0; d < dim_size; ++d)
                 {
                     indices[dim] = d;
                     size_t idx = computeIndex(indices);
